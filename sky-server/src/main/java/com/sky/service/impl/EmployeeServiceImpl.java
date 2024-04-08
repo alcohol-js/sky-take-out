@@ -1,16 +1,20 @@
 package com.sky.service.impl;
 
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import com.sky.constant.MessageConstant;
 import com.sky.constant.PasswordConstant;
 import com.sky.constant.StatusConstant;
 import com.sky.context.BaseContext;
 import com.sky.dto.EmployeeDTO;
 import com.sky.dto.EmployeeLoginDTO;
+import com.sky.dto.EmployeePageQueryDTO;
 import com.sky.entity.Employee;
 import com.sky.exception.AccountLockedException;
 import com.sky.exception.AccountNotFoundException;
 import com.sky.exception.PasswordErrorException;
 import com.sky.mapper.EmployeeMapper;
+import com.sky.result.PageResult;
 import com.sky.service.EmployeeService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,6 +83,53 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         //调用数据库操作
         employeeMapper.insertEmp(employee);
+    }
+
+    @Override
+    public PageResult pageLimit(EmployeePageQueryDTO employeePageQueryDTO) {
+        //开始分页
+        PageHelper.startPage(employeePageQueryDTO.getPage(), employeePageQueryDTO.getPageSize());
+
+        //调用数据库操作
+        Page<Employee> page = employeeMapper.pageLimit(employeePageQueryDTO);
+
+        return new PageResult(page.getTotal(), page.getResult());
+    }
+
+    @Override
+    public void enableAndDisable(Integer status, Long id) {
+        //创建员工对象，填入信息
+        Employee employee = new Employee();
+        employee.setId(id);
+        employee.setStatus(status);
+
+        //调用数据库操作
+        employeeMapper.editEmp(employee);
+
+    }
+
+    @Override
+    public Employee getEmp(Long id) {
+
+        //调用数据库操作
+        Employee employee = employeeMapper.getEmp(id);
+
+        return employee;
+    }
+
+    @Override
+    public void editEmp(EmployeeDTO employeeDTO) {
+        Employee employee = new Employee();
+
+        //属性拷贝
+        BeanUtils.copyProperties(employeeDTO, employee);
+
+        //填充其他信息
+        employee.setUpdateTime(LocalDateTime.now());//更新时间
+        employee.setUpdateUser(BaseContext.getCurrentId());//更新人
+
+        //调用数据库操作
+        employeeMapper.editEmp(employee);
     }
 
 
